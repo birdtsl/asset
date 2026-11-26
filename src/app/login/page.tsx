@@ -15,10 +15,29 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+/** กัน Auth ส่ง callbackUrl เป็น http://localhost:... แล้วเด้งออกนอกเซิร์ฟจริง */
+function safeCallbackPath(raw: string | null): string {
+  const fallback = "/dashboard";
+  if (!raw) return fallback;
+  try {
+    if (raw.startsWith("http://") || raw.startsWith("https://")) {
+      const u = new URL(raw);
+      if (/^(localhost|127\.0\.0\.1)$/i.test(u.hostname)) {
+        return `${u.pathname}${u.search}${u.hash}` || fallback;
+      }
+      // absolute URL คนละ host — ใช้แค่ path ในแอปนี้
+      return `${u.pathname}${u.search}${u.hash}` || fallback;
+    }
+  } catch {
+    return fallback;
+  }
+  return raw.startsWith("/") ? raw : fallback;
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  const callbackUrl = safeCallbackPath(searchParams.get("callbackUrl"));
 
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
