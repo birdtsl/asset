@@ -2,11 +2,15 @@ import { AssetExecutiveDashboard } from "@/components/dashboard/asset-executive-
 
 export const dynamic = "force-dynamic";
 
-/** แดชบอร์ดสาธารณะสำหรับฝังใน TSL MIS — ไม่ต้อง login */
+/**
+ * หน้า dashboard ชุดเดียวกับ /dashboard (คอมโพเนนต์เดียวกัน)
+ * เปิดได้โดยไม่ต้อง login — สำหรับฝังในแท็บทรัพยากรคลังของ TSL MIS
+ * เมื่อกดลิงก์ไปหน้าอื่นในระบบ จะเข้าสู่ login ตามปกติของ Smart Asset
+ */
 export default function EmbedDashboardPage() {
   return (
-    <div className="min-h-screen bg-slate-50 p-4 sm:p-6">
-      <AssetExecutiveDashboard publicMode />
+    <div className="min-h-screen bg-slate-50 p-6">
+      <AssetExecutiveDashboard />
     </div>
   );
 }

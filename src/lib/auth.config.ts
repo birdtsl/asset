@@ -17,7 +17,7 @@ export const authConfig = {
       const isAuthPage = pathname.startsWith("/login");
       const isPublic =
         isAuthPage ||
-        // ฝังใน MIS: หน้า HTML + API สรุป — ไม่กระทบ /dashboard ที่ยังต้อง login
+        // ฝังใน MIS: SSO + dashboard สาธารณะ + API สรุป — แอปหลักยัง login ตามเดิม
         pathname.startsWith("/embed") ||
         pathname.startsWith("/api/embed") ||
         pathname.startsWith("/api/auth") ||
