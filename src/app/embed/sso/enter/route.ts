@@ -6,13 +6,14 @@ import {
   loadLocalUserByUsername,
 } from "@/lib/auth/hosxp-user";
 import { prisma } from "@/lib/prisma";
+import { getPublicOrigin } from "@/lib/public-url";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 function sessionCookieName(req: NextRequest): string {
   const secure =
-    req.nextUrl.protocol === "https:" ||
+    getPublicOrigin(req).startsWith("https://") ||
     process.env.AUTH_URL?.startsWith("https://") === true;
   return secure ? "__Secure-authjs.session-token" : "authjs.session-token";
 }
@@ -21,16 +22,30 @@ function getAuthSecret(): string {
   return process.env.AUTH_SECRET?.trim() || "";
 }
 
+function normalizeNextPath(nextRaw: string): string {
+  // รองรับทั้ง path และ URL เต็ม — ตัดเหลือ path+query ในเครื่องเดียวกัน
+  try {
+    if (nextRaw.startsWith("http://") || nextRaw.startsWith("https://")) {
+      const u = new URL(nextRaw);
+      return `${u.pathname}${u.search}${u.hash}` || "/dashboard";
+    }
+  } catch {
+    /* ignore */
+  }
+  return nextRaw.startsWith("/") ? nextRaw : "/dashboard";
+}
+
 /**
  * SSO จาก TSL MIS — ตรวจ token แล้วตั้ง session cookie ของ Auth.js โดยตรง
  */
 export async function GET(req: NextRequest) {
+  const origin = getPublicOrigin(req);
   const token = req.nextUrl.searchParams.get("token")?.trim() || "";
   const nextRaw = req.nextUrl.searchParams.get("next")?.trim() || "/dashboard";
-  const nextPath = nextRaw.startsWith("/") ? nextRaw : "/dashboard";
+  const nextPath = normalizeNextPath(nextRaw);
   const fail = (reason: string) =>
     NextResponse.redirect(
-      new URL(`/embed/sso/failed?reason=${encodeURIComponent(reason)}`, req.nextUrl.origin),
+      new URL(`/embed/sso/failed?reason=${encodeURIComponent(reason)}`, origin),
     );
 
   if (!token) return fail("missing_token");
@@ -96,7 +111,7 @@ export async function GET(req: NextRequest) {
       maxAge,
     });
 
-    const res = NextResponse.redirect(new URL(nextPath, req.nextUrl.origin));
+    const res = NextResponse.redirect(new URL(nextPath, origin));
     res.cookies.set(cookie, jwt, {
       httpOnly: true,
       sameSite: "lax",
