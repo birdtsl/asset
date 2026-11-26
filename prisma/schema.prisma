@@ -1,0 +1,959 @@
+// TSL Smart Asset — Prisma Schema (Phase 1–5)
+// Database: MariaDB 11.4 / tsl_asset
+// Timezone: Asia/Bangkok (application-level)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  LOCKED
+}
+
+enum AssetClass {
+  NORMAL
+  LOW_VALUE
+}
+
+enum ImportBatchStatus {
+  UPLOADED
+  VALIDATED
+  COMMITTED
+  FAILED
+  CANCELLED
+}
+
+enum ImportRowStatus {
+  PENDING
+  VALID
+  WARNING
+  ERROR
+  COMMITTED
+  SKIPPED
+}
+
+enum ImportCommitAction {
+  CREATE
+  UPDATE
+  SKIP
+}
+
+enum StockDocStatus {
+  DRAFT
+  POSTED
+  CANCELLED
+}
+
+enum StockMovementType {
+  RECEIPT
+  ISSUE
+  ADJUST_IN
+  ADJUST_OUT
+}
+
+enum WorkOrderStatus {
+  OPEN
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum TransferStatus {
+  DRAFT
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+enum DisposalStatus {
+  DRAFT
+  APPROVED
+  COMPLETED
+  CANCELLED
+}
+
+enum DisposalMethod {
+  SALE
+  DONATION
+  DESTROY
+  TRANSFER_OUT
+  OTHER
+}
+
+enum InspectionCampaignStatus {
+  DRAFT
+  IN_PROGRESS
+  CLOSED
+}
+
+enum InspectionResult {
+  PENDING
+  PASS
+  FAIL
+  REPAIR_NEEDED
+  MISSING
+  DISPOSED
+}
+
+enum NotificationSeverity {
+  INFO
+  WARNING
+  CRITICAL
+}
+
+// ─────────────────────────────────────────────
+// Authentication & RBAC
+// ─────────────────────────────────────────────
+
+/// ผู้ใช้งานระบบ TSL Smart Asset
+model User {
+  id           String     @id @default(cuid())
+  username     String     @unique @db.VarChar(50)
+  email        String?    @unique @db.VarChar(150)
+  passwordHash String     @map("password_hash") @db.VarChar(255)
+  fullName     String     @map("full_name") @db.VarChar(150)
+  phone        String?    @db.VarChar(30)
+  departmentId String?    @map("department_id")
+  status       UserStatus @default(ACTIVE)
+  lastLoginAt  DateTime?  @map("last_login_at")
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  department    Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  userRoles     UserRole[]
+  auditLogs     AuditLog[]
+  importBatches ImportBatch[]  @relation("ImportUploadedBy")
+  receiptsCreated StockReceipt[] @relation("ReceiptCreatedBy")
+  receiptsPosted  StockReceipt[] @relation("ReceiptPostedBy")
+  issuesCreated   StockIssue[]   @relation("IssueCreatedBy")
+  issuesPosted    StockIssue[]   @relation("IssuePostedBy")
+  stockLedgers    StockLedger[]  @relation("LedgerCreatedBy")
+  maintenancesCreated MaintenanceOrder[] @relation("MaintenanceCreatedBy")
+  transfersCreated    AssetTransfer[]    @relation("TransferCreatedBy")
+  transfersApproved   AssetTransfer[]    @relation("TransferApprovedBy")
+  disposalsCreated    AssetDisposal[]    @relation("DisposalCreatedBy")
+  disposalsApproved   AssetDisposal[]    @relation("DisposalApprovedBy")
+  inspectionCampaigns InspectionCampaign[] @relation("InspectionCreatedBy")
+  inspectionItems     InspectionItem[]     @relation("InspectionInspectedBy")
+  notifications       Notification[]
+
+  @@index([departmentId])
+  @@index([status])
+  @@map("users")
+}
+
+/// บทบาทผู้ใช้ (RBAC)
+model Role {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(50)
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+/// สิทธิ์การใช้งานระบบ
+model Permission {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(100)
+  name        String   @db.VarChar(150)
+  module      String   @db.VarChar(50)
+  description String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  rolePermissions RolePermission[]
+
+  @@index([module])
+  @@map("permissions")
+}
+
+/// ความสัมพันธ์บทบาทกับสิทธิ์
+model RolePermission {
+  roleId       String @map("role_id")
+  permissionId String @map("permission_id")
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+/// ความสัมพันธ์ผู้ใช้กับบทบาท
+model UserRole {
+  userId     String   @map("user_id")
+  roleId     String   @map("role_id")
+  assignedAt DateTime @default(now()) @map("assigned_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ─────────────────────────────────────────────
+// Master Data
+// ─────────────────────────────────────────────
+
+/// ข้อมูลหลักหน่วยงาน
+model Department {
+  id        String   @id @default(cuid())
+  code      String   @unique @db.VarChar(30)
+  name      String   @db.VarChar(150)
+  parentId  String?  @map("parent_id")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent    Department?  @relation("DepartmentTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children  Department[] @relation("DepartmentTree")
+  users     User[]
+  locations Location[]
+  assets    Asset[]
+  receipts  StockReceipt[]
+  issues    StockIssue[]
+  transfersFrom AssetTransfer[] @relation("TransferFromDept")
+  transfersTo   AssetTransfer[] @relation("TransferToDept")
+
+  @@index([parentId])
+  @@index([isActive])
+  @@map("departments")
+}
+
+/// ข้อมูลหลักสถานที่ตั้ง
+model Location {
+  id           String   @id @default(cuid())
+  code         String   @unique @db.VarChar(30)
+  name         String   @db.VarChar(150)
+  building     String?  @db.VarChar(100)
+  floor        String?  @db.VarChar(50)
+  room         String?  @db.VarChar(50)
+  departmentId String?  @map("department_id")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  department Department? @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  assets     Asset[]
+
+  @@index([departmentId])
+  @@index([isActive])
+  @@map("locations")
+}
+
+/// ข้อมูลหลักหมวด/ประเภทครุภัณฑ์
+model AssetCategory {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(30)
+  name        String   @db.VarChar(150)
+  parentId    String?  @map("parent_id")
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  parent   AssetCategory?  @relation("CategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children AssetCategory[] @relation("CategoryTree")
+  assets   Asset[]
+
+  @@index([parentId])
+  @@index([isActive])
+  @@map("asset_categories")
+}
+
+/// ข้อมูลหลักหน่วยนับ
+model Unit {
+  id        String   @id @default(cuid())
+  code      String   @unique @db.VarChar(20)
+  name      String   @db.VarChar(100)
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  assets    Asset[]
+  materials Material[]
+
+  @@map("units")
+}
+
+/// ข้อมูลหลักแหล่งงบประมาณ
+model BudgetSource {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(30)
+  name        String   @db.VarChar(150)
+  description String?  @db.Text
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  assets Asset[]
+
+  @@map("budget_sources")
+}
+
+/// ข้อมูลหลักผู้ขาย/ผู้จำหน่าย
+model Supplier {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(30)
+  name        String   @db.VarChar(200)
+  taxId       String?  @map("tax_id") @db.VarChar(20)
+  address     String?  @db.Text
+  phone       String?  @db.VarChar(50)
+  email       String?  @db.VarChar(150)
+  contactName String?  @map("contact_name") @db.VarChar(150)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  assets   Asset[]
+  receipts StockReceipt[]
+
+  @@map("suppliers")
+}
+
+/// ข้อมูลหลักสถานะครุภัณฑ์
+model AssetStatus {
+  id          String   @id @default(cuid())
+  code        String   @unique @db.VarChar(30)
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  color       String?  @db.VarChar(20)
+  isActive    Boolean  @default(true) @map("is_active")
+  sortOrder   Int      @default(0) @map("sort_order")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  assets Asset[]
+
+  @@map("asset_statuses")
+}
+
+// ─────────────────────────────────────────────
+// Phase 2 — Asset Registry + Import Staging
+// ─────────────────────────────────────────────
+
+/// ทะเบียนครุภัณฑ์ปกติและต่ำกว่าเกณฑ์
+model Asset {
+  id        String     @id @default(cuid())
+  assetClass AssetClass @map("asset_class")
+
+  assetCode   String  @unique @map("asset_code") @db.VarChar(120)
+  typeCode    String? @map("type_code") @db.VarChar(50)
+  acquireSeq  String? @map("acquire_seq") @db.VarChar(50)
+  yearCode    String? @map("year_code") @db.VarChar(20)
+  seqNo       Int?    @map("seq_no")
+
+  categoryName String? @map("category_name") @db.VarChar(150)
+  itemName     String  @map("item_name") @db.VarChar(255)
+  usefulLifeYears Int? @map("useful_life_years")
+
+  budgetType    String? @map("budget_type") @db.VarChar(100)
+  acquireMethod String? @map("acquire_method") @db.VarChar(100)
+  brandModel    String? @map("brand_model") @db.Text
+  locationText  String? @map("location_text") @db.VarChar(255)
+  documentRef   String? @map("document_ref") @db.Text
+
+  receiveDay     Int?      @map("receive_day")
+  receiveMonth   String?   @map("receive_month") @db.VarChar(30)
+  receiveYearBe  Int?      @map("receive_year_be")
+  receivedAt     DateTime? @map("received_at")
+
+  quantity              Decimal @default(1) @db.Decimal(18, 2)
+  unitPrice             Decimal? @map("unit_price") @db.Decimal(18, 2)
+  totalValue            Decimal? @map("total_value") @db.Decimal(18, 2)
+  unitName              String?  @map("unit_name") @db.VarChar(50)
+  calculateDepreciation Boolean  @default(true) @map("calculate_depreciation")
+
+  vendorName    String? @map("vendor_name") @db.VarChar(255)
+  vendorAddress String? @map("vendor_address") @db.Text
+  vendorPhone   String? @map("vendor_phone") @db.VarChar(80)
+
+  categoryId     String? @map("category_id")
+  departmentId   String? @map("department_id")
+  locationId     String? @map("location_id")
+  budgetSourceId String? @map("budget_source_id")
+  supplierId     String? @map("supplier_id")
+  statusId       String? @map("status_id")
+  unitId         String? @map("unit_id")
+
+  sourceBatchId String? @map("source_batch_id")
+  sourceRowNo   Int?    @map("source_row_no")
+  notes         String? @db.Text
+
+  /// จาก sheet chek/check ใน Excel ทะเบียนคุม
+  checkDamaged      Boolean @default(false) @map("check_damaged")
+  checkDeteriorated Boolean @default(false) @map("check_deteriorated")
+  checkLost         Boolean @default(false) @map("check_lost")
+  checkUnused       Boolean @default(false) @map("check_unused")
+  checkInUse        Boolean @default(false) @map("check_in_use")
+  checkRemark       String? @map("check_remark") @db.Text
+
+  isActive      Boolean @default(true) @map("is_active")
+  qrToken       String?   @unique @map("qr_token") @db.VarChar(64)
+  qrGeneratedAt DateTime? @map("qr_generated_at")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  category     AssetCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  department   Department?    @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  location     Location?      @relation(fields: [locationId], references: [id], onDelete: SetNull)
+  budgetSource BudgetSource?  @relation(fields: [budgetSourceId], references: [id], onDelete: SetNull)
+  supplier     Supplier?      @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  status       AssetStatus?   @relation(fields: [statusId], references: [id], onDelete: SetNull)
+  unit         Unit?          @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  sourceBatch  ImportBatch?   @relation(fields: [sourceBatchId], references: [id], onDelete: SetNull)
+  maintenances MaintenanceOrder[]
+  transfers    AssetTransfer[]
+  disposals    AssetDisposal[]
+  inspectionItems InspectionItem[]
+
+  @@index([assetClass])
+  @@index([categoryName])
+  @@index([itemName])
+  @@index([locationText])
+  @@index([budgetType])
+  @@index([isActive])
+  @@index([receivedAt])
+  @@map("assets")
+}
+
+/// ชุดงานนำเข้า Excel ทะเบียนครุภัณฑ์
+model ImportBatch {
+  id         String            @id @default(cuid())
+  fileName   String            @map("file_name") @db.VarChar(255)
+  storedPath String            @map("stored_path") @db.VarChar(500)
+  sheetName  String            @default("Data") @map("sheet_name") @db.VarChar(100)
+  assetClass AssetClass        @map("asset_class")
+  status     ImportBatchStatus @default(UPLOADED)
+
+  totalRows     Int @default(0) @map("total_rows")
+  validRows     Int @default(0) @map("valid_rows")
+  warningRows   Int @default(0) @map("warning_rows")
+  errorRows     Int @default(0) @map("error_rows")
+  committedRows Int @default(0) @map("committed_rows")
+
+  uploadedById String?   @map("uploaded_by_id")
+  validatedAt  DateTime? @map("validated_at")
+  committedAt  DateTime? @map("committed_at")
+  notes        String?   @db.Text
+  errorSummary String?   @map("error_summary") @db.LongText
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+
+  uploadedBy User?              @relation("ImportUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  rows       ImportStagingRow[]
+  assets     Asset[]
+
+  @@index([assetClass])
+  @@index([status])
+  @@index([createdAt])
+  @@map("import_batches")
+}
+
+/// แถว Staging ของการนำเข้า Excel ก่อนยืนยัน
+model ImportStagingRow {
+  id      String          @id @default(cuid())
+  batchId String          @map("batch_id")
+  rowNo   Int             @map("row_no")
+  status  ImportRowStatus @default(PENDING)
+
+  rawJson String @map("raw_json") @db.LongText
+
+  assetCode      String?  @map("asset_code") @db.VarChar(120)
+  typeCode       String?  @map("type_code") @db.VarChar(50)
+  acquireSeq     String?  @map("acquire_seq") @db.VarChar(50)
+  yearCode       String?  @map("year_code") @db.VarChar(20)
+  seqNo          Int?     @map("seq_no")
+  categoryName   String?  @map("category_name") @db.VarChar(150)
+  itemName       String?  @map("item_name") @db.VarChar(255)
+  usefulLifeYears Int?    @map("useful_life_years")
+  budgetType     String?  @map("budget_type") @db.VarChar(100)
+  acquireMethod  String?  @map("acquire_method") @db.VarChar(100)
+  brandModel     String?  @map("brand_model") @db.Text
+  locationText   String?  @map("location_text") @db.VarChar(255)
+  documentRef    String?  @map("document_ref") @db.Text
+  receiveDay     Int?     @map("receive_day")
+  receiveMonth   String?  @map("receive_month") @db.VarChar(30)
+  receiveYearBe  Int?     @map("receive_year_be")
+  quantity       Decimal? @db.Decimal(18, 2)
+  unitPrice      Decimal? @map("unit_price") @db.Decimal(18, 2)
+  unitName       String?  @map("unit_name") @db.VarChar(50)
+  calculateDepreciation Boolean? @map("calculate_depreciation")
+  vendorName     String?  @map("vendor_name") @db.VarChar(255)
+  vendorAddress  String?  @map("vendor_address") @db.Text
+  vendorPhone    String?  @map("vendor_phone") @db.VarChar(80)
+
+  validationErrors   String? @map("validation_errors") @db.LongText
+  validationWarnings String? @map("validation_warnings") @db.LongText
+  commitAction       ImportCommitAction? @map("commit_action")
+  matchedAssetId     String? @map("matched_asset_id") @db.VarChar(50)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  batch ImportBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+
+  @@unique([batchId, rowNo])
+  @@index([status])
+  @@index([assetCode])
+  @@map("import_staging_rows")
+}
+
+/// ค่าตั้งค่าระบบ
+model SystemSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique @db.VarChar(100)
+  value     String   @db.Text
+  label     String?  @db.VarChar(150)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("system_settings")
+}
+
+/// บันทึกกิจกรรมผู้ใช้/ระบบ
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?  @map("user_id")
+  action    String   @db.VarChar(50)
+  entity    String   @db.VarChar(100)
+  entityId  String?  @map("entity_id") @db.VarChar(50)
+  detail    String?  @db.LongText
+  ipAddress String?  @map("ip_address") @db.VarChar(45)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([entity, entityId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+// ─────────────────────────────────────────────
+// Phase 3 — Material Inventory / Stock
+// ─────────────────────────────────────────────
+
+/// คลังวัสดุ
+model Warehouse {
+  id           String   @id @default(cuid())
+  code         String   @unique @db.VarChar(30)
+  name         String   @db.VarChar(150)
+  locationText String?  @map("location_text") @db.VarChar(255)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  balances StockBalance[]
+  receipts StockReceipt[]
+  issues   StockIssue[]
+  ledgers  StockLedger[]
+
+  @@index([isActive])
+  @@map("warehouses")
+}
+
+/// หมวดหมู่วัสดุ
+model MaterialCategory {
+  id        String   @id @default(cuid())
+  code      String   @unique @db.VarChar(30)
+  name      String   @db.VarChar(150)
+  parentId  String?  @map("parent_id")
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  parent     MaterialCategory?  @relation("MaterialCategoryTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children   MaterialCategory[] @relation("MaterialCategoryTree")
+  materials  Material[]
+
+  @@index([parentId])
+  @@map("material_categories")
+}
+
+/// รายการวัสดุคงคลัง
+model Material {
+  id           String   @id @default(cuid())
+  code         String   @unique @db.VarChar(50)
+  name         String   @db.VarChar(200)
+  description  String?  @db.Text
+  categoryId   String?  @map("category_id")
+  unitId       String?  @map("unit_id")
+  minStock     Decimal  @default(0) @map("min_stock") @db.Decimal(18, 2)
+  reorderPoint Decimal  @default(0) @map("reorder_point") @db.Decimal(18, 2)
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  category     MaterialCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  unit         Unit?             @relation(fields: [unitId], references: [id], onDelete: SetNull)
+  balances     StockBalance[]
+  receiptItems StockReceiptItem[]
+  issueItems   StockIssueItem[]
+  ledgers      StockLedger[]
+
+  @@index([categoryId])
+  @@index([isActive])
+  @@index([name])
+  @@map("materials")
+}
+
+/// ยอดคงเหลือวัสดุแยกตามคลัง
+model StockBalance {
+  id          String   @id @default(cuid())
+  warehouseId String   @map("warehouse_id")
+  materialId  String   @map("material_id")
+  quantity    Decimal  @default(0) @db.Decimal(18, 2)
+  avgCost     Decimal  @default(0) @map("avg_cost") @db.Decimal(18, 4)
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  warehouse Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  material  Material  @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([warehouseId, materialId])
+  @@index([quantity])
+  @@map("stock_balances")
+}
+
+/// เอกสารรับเข้าวัสดุ
+model StockReceipt {
+  id           String         @id @default(cuid())
+  docNo        String         @unique @map("doc_no") @db.VarChar(40)
+  warehouseId  String         @map("warehouse_id")
+  receiptDate  DateTime       @map("receipt_date") @db.Date
+  supplierId   String?        @map("supplier_id")
+  departmentId String?        @map("department_id")
+  refNo        String?        @map("ref_no") @db.VarChar(100)
+  notes        String?        @db.Text
+  status       StockDocStatus @default(DRAFT)
+  createdById  String?        @map("created_by_id")
+  postedById   String?        @map("posted_by_id")
+  postedAt     DateTime?      @map("posted_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  warehouse  Warehouse          @relation(fields: [warehouseId], references: [id])
+  supplier   Supplier?          @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  department Department?        @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  createdBy  User?              @relation("ReceiptCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  postedBy   User?              @relation("ReceiptPostedBy", fields: [postedById], references: [id], onDelete: SetNull)
+  items      StockReceiptItem[]
+  ledgers    StockLedger[]
+
+  @@index([warehouseId])
+  @@index([receiptDate])
+  @@index([status])
+  @@map("stock_receipts")
+}
+
+/// รายการในใบรับเข้าวัสดุ
+model StockReceiptItem {
+  id         String    @id @default(cuid())
+  receiptId  String    @map("receipt_id")
+  materialId String    @map("material_id")
+  quantity   Decimal   @db.Decimal(18, 2)
+  unitCost   Decimal   @default(0) @map("unit_cost") @db.Decimal(18, 4)
+  lineTotal  Decimal   @default(0) @map("line_total") @db.Decimal(18, 2)
+  lotNo      String?   @map("lot_no") @db.VarChar(80)
+  expireDate DateTime? @map("expire_date") @db.Date
+  notes      String?   @db.VarChar(255)
+
+  receipt  StockReceipt @relation(fields: [receiptId], references: [id], onDelete: Cascade)
+  material Material     @relation(fields: [materialId], references: [id])
+
+  @@index([receiptId])
+  @@index([materialId])
+  @@map("stock_receipt_items")
+}
+
+/// เอกสารจ่ายออกวัสดุ
+model StockIssue {
+  id           String         @id @default(cuid())
+  docNo        String         @unique @map("doc_no") @db.VarChar(40)
+  warehouseId  String         @map("warehouse_id")
+  issueDate    DateTime       @map("issue_date") @db.Date
+  departmentId String?        @map("department_id")
+  requestedBy  String?        @map("requested_by") @db.VarChar(150)
+  purpose      String?        @db.VarChar(255)
+  notes        String?        @db.Text
+  status       StockDocStatus @default(DRAFT)
+  createdById  String?        @map("created_by_id")
+  postedById   String?        @map("posted_by_id")
+  postedAt     DateTime?      @map("posted_at")
+  createdAt    DateTime       @default(now()) @map("created_at")
+  updatedAt    DateTime       @updatedAt @map("updated_at")
+
+  warehouse  Warehouse        @relation(fields: [warehouseId], references: [id])
+  department Department?      @relation(fields: [departmentId], references: [id], onDelete: SetNull)
+  createdBy  User?            @relation("IssueCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  postedBy   User?            @relation("IssuePostedBy", fields: [postedById], references: [id], onDelete: SetNull)
+  items      StockIssueItem[]
+  ledgers    StockLedger[]
+
+  @@index([warehouseId])
+  @@index([issueDate])
+  @@index([status])
+  @@map("stock_issues")
+}
+
+/// รายการในใบจ่ายออกวัสดุ
+model StockIssueItem {
+  id         String  @id @default(cuid())
+  issueId    String  @map("issue_id")
+  materialId String  @map("material_id")
+  quantity   Decimal @db.Decimal(18, 2)
+  unitCost   Decimal @default(0) @map("unit_cost") @db.Decimal(18, 4)
+  lineTotal  Decimal @default(0) @map("line_total") @db.Decimal(18, 2)
+  notes      String? @db.VarChar(255)
+
+  issue    StockIssue @relation(fields: [issueId], references: [id], onDelete: Cascade)
+  material Material   @relation(fields: [materialId], references: [id])
+
+  @@index([issueId])
+  @@index([materialId])
+  @@map("stock_issue_items")
+}
+
+/// สมุดบัญชีความเคลื่อนไหวสต็อกวัสดุ
+model StockLedger {
+  id           String            @id @default(cuid())
+  warehouseId  String            @map("warehouse_id")
+  materialId   String            @map("material_id")
+  movementType StockMovementType @map("movement_type")
+  movementDate DateTime          @map("movement_date")
+  quantity     Decimal           @db.Decimal(18, 2)
+  unitCost     Decimal           @default(0) @map("unit_cost") @db.Decimal(18, 4)
+  balanceAfter Decimal           @map("balance_after") @db.Decimal(18, 2)
+  receiptId    String?           @map("receipt_id")
+  issueId      String?           @map("issue_id")
+  refDocNo     String?           @map("ref_doc_no") @db.VarChar(40)
+  notes        String?           @db.VarChar(255)
+  createdById  String?           @map("created_by_id")
+  createdAt    DateTime          @default(now()) @map("created_at")
+
+  warehouse Warehouse     @relation(fields: [warehouseId], references: [id])
+  material  Material      @relation(fields: [materialId], references: [id])
+  receipt   StockReceipt? @relation(fields: [receiptId], references: [id], onDelete: SetNull)
+  issue     StockIssue?   @relation(fields: [issueId], references: [id], onDelete: SetNull)
+  createdBy User?         @relation("LedgerCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([warehouseId, materialId, movementDate])
+  @@index([movementType])
+  @@index([refDocNo])
+  @@map("stock_ledgers")
+}
+
+// ─────────────────────────────────────────────
+// Phase 4 — Land / Maintenance / Transfer / Disposal
+// ─────────────────────────────────────────────
+
+/// ทะเบียนที่ดิน
+model LandParcel {
+  id               String   @id @default(cuid())
+  parcelNo         String   @unique @map("parcel_no") @db.VarChar(50)
+  title            String   @db.VarChar(200)
+  plotNo           String?  @map("plot_no") @db.VarChar(50)
+  address          String?  @db.Text
+  responsibleUnit  String?  @map("responsible_unit") @db.VarChar(255)
+  phone            String?  @db.VarChar(50)
+  donorName        String?  @map("donor_name") @db.VarChar(200)
+  areaRai          Int      @default(0) @map("area_rai")
+  areaNgan         Int      @default(0) @map("area_ngan")
+  areaSqWah        Decimal  @default(0) @map("area_sq_wah") @db.Decimal(18, 2)
+  areaText         String?  @map("area_text") @db.VarChar(150)
+  bookValue        Decimal? @map("book_value") @db.Decimal(18, 2)
+  netValue         Decimal? @map("net_value") @db.Decimal(18, 2)
+  acquiredAt       DateTime? @map("acquired_at")
+  hasBuildings     Boolean  @default(false) @map("has_buildings")
+  notes            String?  @db.Text
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  maintenances MaintenanceOrder[]
+
+  @@index([isActive])
+  @@map("land_parcels")
+}
+
+/// ใบงานซ่อมบำรุง
+model MaintenanceOrder {
+  id            String          @id @default(cuid())
+  docNo         String          @unique @map("doc_no") @db.VarChar(40)
+  assetId       String?         @map("asset_id")
+  landId        String?         @map("land_id")
+  title         String          @db.VarChar(200)
+  description   String?         @db.Text
+  requestDate   DateTime        @map("request_date") @db.Date
+  completedDate DateTime?       @map("completed_date") @db.Date
+  cost          Decimal         @default(0) @db.Decimal(18, 2)
+  vendorName    String?         @map("vendor_name") @db.VarChar(200)
+  status        WorkOrderStatus @default(OPEN)
+  requestedBy   String?         @map("requested_by") @db.VarChar(150)
+  performedBy   String?         @map("performed_by") @db.VarChar(150)
+  notes         String?         @db.Text
+  createdById   String?         @map("created_by_id")
+  createdAt     DateTime        @default(now()) @map("created_at")
+  updatedAt     DateTime        @updatedAt @map("updated_at")
+
+  asset     Asset?      @relation(fields: [assetId], references: [id], onDelete: SetNull)
+  land      LandParcel? @relation(fields: [landId], references: [id], onDelete: SetNull)
+  createdBy User?       @relation("MaintenanceCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([requestDate])
+  @@index([assetId])
+  @@index([landId])
+  @@map("maintenance_orders")
+}
+
+/// เอกสารโอนย้ายครุภัณฑ์
+model AssetTransfer {
+  id               String         @id @default(cuid())
+  docNo            String         @unique @map("doc_no") @db.VarChar(40)
+  assetId          String         @map("asset_id")
+  fromDepartmentId String?        @map("from_department_id")
+  toDepartmentId   String?        @map("to_department_id")
+  fromLocationText String?        @map("from_location_text") @db.VarChar(255)
+  toLocationText   String         @map("to_location_text") @db.VarChar(255)
+  transferDate     DateTime       @map("transfer_date") @db.Date
+  reason           String?        @db.Text
+  status           TransferStatus @default(DRAFT)
+  createdById      String?        @map("created_by_id")
+  approvedById     String?        @map("approved_by_id")
+  approvedAt       DateTime?      @map("approved_at")
+  completedAt      DateTime?      @map("completed_at")
+  createdAt        DateTime       @default(now()) @map("created_at")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
+
+  asset          Asset       @relation(fields: [assetId], references: [id])
+  fromDepartment Department? @relation("TransferFromDept", fields: [fromDepartmentId], references: [id], onDelete: SetNull)
+  toDepartment   Department? @relation("TransferToDept", fields: [toDepartmentId], references: [id], onDelete: SetNull)
+  createdBy      User?       @relation("TransferCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedBy     User?       @relation("TransferApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([transferDate])
+  @@index([assetId])
+  @@map("asset_transfers")
+}
+
+/// เอกสารจำหน่ายครุภัณฑ์
+model AssetDisposal {
+  id            String         @id @default(cuid())
+  docNo         String         @unique @map("doc_no") @db.VarChar(40)
+  assetId       String         @map("asset_id")
+  method        DisposalMethod @default(OTHER)
+  disposalDate  DateTime       @map("disposal_date") @db.Date
+  reason        String?        @db.Text
+  approvedValue Decimal?       @map("approved_value") @db.Decimal(18, 2)
+  status        DisposalStatus @default(DRAFT)
+  createdById   String?        @map("created_by_id")
+  approvedById  String?        @map("approved_by_id")
+  approvedAt    DateTime?      @map("approved_at")
+  completedAt   DateTime?      @map("completed_at")
+  notes         String?        @db.Text
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  asset      Asset @relation(fields: [assetId], references: [id])
+  createdBy  User? @relation("DisposalCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  approvedBy User? @relation("DisposalApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@index([status])
+  @@index([disposalDate])
+  @@index([assetId])
+  @@map("asset_disposals")
+}
+
+// ─────────────────────────────────────────────
+// Phase 5 — QR Code / Annual Inspection
+// ─────────────────────────────────────────────
+
+/// รอบตรวจครุภัณฑ์ประจำปี
+model InspectionCampaign {
+  id          String                    @id @default(cuid())
+  yearBe      Int                       @map("year_be")
+  title       String                    @db.VarChar(200)
+  startDate   DateTime                  @map("start_date") @db.Date
+  endDate     DateTime?                 @map("end_date") @db.Date
+  status      InspectionCampaignStatus  @default(DRAFT)
+  notes       String?                   @db.Text
+  createdById String?                   @map("created_by_id")
+  createdAt   DateTime                  @default(now()) @map("created_at")
+  updatedAt   DateTime                  @updatedAt @map("updated_at")
+
+  createdBy User?             @relation("InspectionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  items     InspectionItem[]
+
+  @@unique([yearBe, title])
+  @@index([yearBe])
+  @@index([status])
+  @@map("inspection_campaigns")
+}
+
+/// รายการตรวจในแต่ละรอบตรวจประจำปี
+model InspectionItem {
+  id             String           @id @default(cuid())
+  campaignId     String           @map("campaign_id")
+  assetId        String           @map("asset_id")
+  result         InspectionResult @default(PENDING)
+  conditionNote  String?          @map("condition_note") @db.Text
+  locationFound  String?          @map("location_found") @db.VarChar(255)
+  inspectedAt    DateTime?        @map("inspected_at")
+  inspectedById  String?          @map("inspected_by_id")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+
+  campaign    InspectionCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  asset       Asset              @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  inspectedBy User?              @relation("InspectionInspectedBy", fields: [inspectedById], references: [id], onDelete: SetNull)
+
+  @@unique([campaignId, assetId])
+  @@index([result])
+  @@index([inspectedAt])
+  @@map("inspection_items")
+}
+
+// ─────────────────────────────────────────────
+// Phase 6 — Notifications / Report Center
+// ─────────────────────────────────────────────
+
+/// การแจ้งเตือนภายในระบบ
+model Notification {
+  id        String                @id @default(cuid())
+  userId    String?               @map("user_id")
+  title     String                @db.VarChar(200)
+  message   String                @db.Text
+  severity  NotificationSeverity  @default(INFO)
+  category  String                @db.VarChar(50)
+  href      String?               @db.VarChar(300)
+  dedupeKey String?               @unique @map("dedupe_key") @db.VarChar(120)
+  isRead    Boolean               @default(false) @map("is_read")
+  readAt    DateTime?             @map("read_at")
+  createdAt DateTime              @default(now()) @map("created_at")
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([category])
+  @@index([createdAt])
+  @@map("notifications")
+}

@@ -1,0 +1,22 @@
+{
+  "name": "tsl-asset-sync-agent",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Windows sync agent — read Excel sheet chek and POST deltas to TSL Smart Asset",
+  "type": "module",
+  "bin": {
+    "tsl-asset-sync": "./sync.mjs"
+  },
+  "pkg": {
+    "targets": ["node18-win-x64"],
+    "outputPath": "dist"
+  },
+  "scripts": {
+    "sync": "node sync.mjs",
+    "once": "node sync.mjs --once",
+    "build": "powershell -ExecutionPolicy Bypass -File ./build-installer.ps1"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
+  }
+}

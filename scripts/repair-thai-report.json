@@ -1,0 +1,225 @@
+{
+  "totalUpdatedCells": 47236,
+  "report": [
+    {
+      "table": "assets",
+      "rows": 3039,
+      "updatedRows": 3039,
+      "updatedCells": 21928
+    },
+    {
+      "table": "departments",
+      "rows": 3,
+      "updatedRows": 3,
+      "updatedCells": 3
+    },
+    {
+      "table": "locations",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "asset_categories",
+      "rows": 4,
+      "updatedRows": 4,
+      "updatedCells": 4
+    },
+    {
+      "table": "units",
+      "rows": 5,
+      "updatedRows": 5,
+      "updatedCells": 5
+    },
+    {
+      "table": "budget_sources",
+      "rows": 3,
+      "updatedRows": 3,
+      "updatedCells": 3
+    },
+    {
+      "table": "suppliers",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "asset_statuses",
+      "rows": 4,
+      "updatedRows": 4,
+      "updatedCells": 4
+    },
+    {
+      "table": "users",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "roles",
+      "rows": 7,
+      "updatedRows": 7,
+      "updatedCells": 14
+    },
+    {
+      "table": "permissions",
+      "rows": 19,
+      "updatedRows": 19,
+      "updatedCells": 19
+    },
+    {
+      "table": "system_settings",
+      "rows": 5,
+      "updatedRows": 3,
+      "updatedCells": 5
+    },
+    {
+      "table": "materials",
+      "rows": 6,
+      "updatedRows": 6,
+      "updatedCells": 6
+    },
+    {
+      "table": "material_categories",
+      "rows": 4,
+      "updatedRows": 4,
+      "updatedCells": 4
+    },
+    {
+      "table": "warehouses",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "land_parcels",
+      "rows": 4,
+      "updatedRows": 4,
+      "updatedCells": 19
+    },
+    {
+      "table": "import_batches",
+      "rows": 2,
+      "updatedRows": 2,
+      "updatedCells": 2
+    },
+    {
+      "table": "import_staging_rows",
+      "rows": 3073,
+      "updatedRows": 3073,
+      "updatedCells": 25196
+    },
+    {
+      "table": "notifications",
+      "rows": 2,
+      "updatedRows": 2,
+      "updatedCells": 4
+    },
+    {
+      "table": "inspection_campaigns",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "inspection_items",
+      "rows": 100,
+      "updatedRows": 0,
+      "updatedCells": 0
+    },
+    {
+      "table": "audit_logs",
+      "rows": 13,
+      "updatedRows": 12,
+      "updatedCells": 12
+    },
+    {
+      "table": "maintenance_orders",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "asset_transfers",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "asset_disposals",
+      "rows": 0,
+      "updatedRows": 0,
+      "updatedCells": 0
+    },
+    {
+      "table": "stock_receipts",
+      "rows": 1,
+      "updatedRows": 1,
+      "updatedCells": 1
+    },
+    {
+      "table": "stock_issues",
+      "rows": 1,
+      "updatedRows": 0,
+      "updatedCells": 0
+    }
+  ],
+  "samples": {
+    "sampleAssets": [
+      {
+        "asset_code": "3510-001-0001/5 รพ.ทล./61",
+        "item_name": "เครื่องซักผ้า"
+      },
+      {
+        "asset_code": "8510-012-0002/3 รพ.ทล./54",
+        "item_name": "เครื่องอบผ้า"
+      },
+      {
+        "asset_code": "8510-012-0003/4 รพ.ทล./61",
+        "item_name": "เครื่องอบผ้า"
+      },
+      {
+        "asset_code": "7310-006-0001/2 รพ.ทล./38",
+        "item_name": "รถเข็นอาหาร (สแตนเลส)"
+      },
+      {
+        "asset_code": "4510-015-0001/1 รพ.ทล./38",
+        "item_name": "อ่างล้างจาน"
+      }
+    ],
+    "sampleUsers": [
+      {
+        "username": "admin",
+        "full_name": "ผู้ดูแลระบบ"
+      }
+    ],
+    "sampleDepts": [
+      {
+        "code": "IT",
+        "name": "งานเทคโนโลยีสารสนเทศ"
+      },
+      {
+        "code": "SUPPLY",
+        "name": "งานพัสดุ"
+      },
+      {
+        "code": "ADMIN",
+        "name": "งานบริหารทั่วไป"
+      }
+    ],
+    "sampleCats": [
+      {
+        "name": "ครุภัณฑ์การแพทย์"
+      },
+      {
+        "name": "ครุภัณฑ์สำนักงาน"
+      },
+      {
+        "name": "ครุภัณฑ์คอมพิวเตอร์"
+      },
+      {
+        "name": "ยานพาหนะ"
+      }
+    ]
+  }
+}

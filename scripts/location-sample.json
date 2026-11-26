@@ -1,0 +1,440 @@
+{
+  "samples": [
+    {
+      "assetCode": "/1 รพ.ทล./56",
+      "itemName": "เครื่องขูดหินน้ำลายอัลตราโซนิค",
+      "locationText": "570",
+      "locationId": null
+    },
+    {
+      "assetCode": "/1 รพ.ทล./57",
+      "itemName": "เครื่องชั่งโลหิต",
+      "locationText": "589",
+      "locationId": null
+    },
+    {
+      "assetCode": "/1 รพ.ทล./58",
+      "itemName": "เครื่องจี้ห้ามเลือดและตัดเนื้อเยื่อด้วยไฟฟ้า",
+      "locationText": "662",
+      "locationId": null
+    },
+    {
+      "assetCode": "/11 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "713",
+      "locationId": null
+    },
+    {
+      "assetCode": "/12 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "714",
+      "locationId": null
+    },
+    {
+      "assetCode": "/14 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "715",
+      "locationId": null
+    },
+    {
+      "assetCode": "/15 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "716",
+      "locationId": null
+    },
+    {
+      "assetCode": "/16 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "717",
+      "locationId": null
+    },
+    {
+      "assetCode": "/17 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "718",
+      "locationId": null
+    },
+    {
+      "assetCode": "/18 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "719",
+      "locationId": null
+    },
+    {
+      "assetCode": "/19 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "720",
+      "locationId": null
+    },
+    {
+      "assetCode": "/2 รพ.ทล./54",
+      "itemName": "พระบรมฉายาลักษณ์",
+      "locationText": "525",
+      "locationId": null
+    },
+    {
+      "assetCode": "/20 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "721",
+      "locationId": null
+    },
+    {
+      "assetCode": "/3 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "708",
+      "locationId": null
+    },
+    {
+      "assetCode": "/4 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "709",
+      "locationId": null
+    },
+    {
+      "assetCode": "/5 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "710",
+      "locationId": null
+    },
+    {
+      "assetCode": "/7 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "711",
+      "locationId": null
+    },
+    {
+      "assetCode": "/8 รพ.ทล./53",
+      "itemName": "เตียงเฟาเลอร์พร้อมที่นอน",
+      "locationText": "712",
+      "locationId": null
+    },
+    {
+      "assetCode": "0007-001-0008/1 รพ.ทล./62",
+      "itemName": "Power Supply (ตู้โทรศัพท์ายใน)",
+      "locationText": "224",
+      "locationId": null
+    },
+    {
+      "assetCode": "0300-000-0001/1 รพ.ทล./54",
+      "itemName": "พัดลมระบายอากาศแบบติดเพดาน",
+      "locationText": "219",
+      "locationId": null
+    },
+    {
+      "assetCode": "0300-000-0001/2 รพ.ทล./54",
+      "itemName": "พัดลมระบายอากาศแบบติดเพดาน",
+      "locationText": "220",
+      "locationId": null
+    },
+    {
+      "assetCode": "0300-000-0001/3 รพ.ทล./54",
+      "itemName": "พัดลมระบายอากาศแบบติดเพดาน",
+      "locationText": "221",
+      "locationId": null
+    },
+    {
+      "assetCode": "0300-000-0001/4 รพ.ทล./54",
+      "itemName": "พัดลมระบายอากาศแบบติดเพดาน",
+      "locationText": "222",
+      "locationId": null
+    },
+    {
+      "assetCode": "0900-000-01/1 รพ.ทล./54",
+      "itemName": "ตู้ดูดเชื้อแบบจ่ายลมออกตามท่อพื้นที่ายนอก",
+      "locationText": "911",
+      "locationId": null
+    },
+    {
+      "assetCode": "0900-0000-01/6 รพ.ทล./63",
+      "itemName": "เครื่องปั่นอมัลกรัม (เครื่องปั่นผสมสารอุดฟัน)",
+      "locationText": "909",
+      "locationId": null
+    },
+    {
+      "assetCode": "0900-0001-0009/10 รพ.ทล./60",
+      "itemName": "เก้าอี้สนามแบบมีชุดเทและอ่างบ้วนปาก",
+      "locationText": "904",
+      "locationId": null
+    },
+    {
+      "assetCode": "0900-0006-001/1 รพ.ทล./54",
+      "itemName": "รถจ่ายยาสำหรับห้องฉุกเฉิน",
+      "locationText": "563",
+      "locationId": null
+    },
+    {
+      "assetCode": "0900-0006-001/2 รพ.ทล./54",
+      "itemName": "รถจ่ายยาสำหรับห้องฉุกเฉิน",
+      "locationText": "564",
+      "locationId": null
+    },
+    {
+      "assetCode": "0900-0006-001/3 รพ.ทล./55",
+      "itemName": "รถจ่ายยาสำหรับห้องฉุกเฉิน",
+      "locationText": "565",
+      "locationId": null
+    },
+    {
+      "assetCode": "0900-0006-001/4 รพ.ทล./64",
+      "itemName": "รถจ่ายยาสำหรับห้องฉุกเฉิน",
+      "locationText": "566",
+      "locationId": null
+    }
+  ],
+  "distinct": [
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "630"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "694"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "758"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "822"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "889"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "953"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "1017"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "1081"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "12"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "76"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "140"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "207"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "271"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "335"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "401"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "465"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "534"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "598"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "662"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "726"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "790"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "854"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "921"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "985"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "1049"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "1113"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "44"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "108"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "174"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "239"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "303"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "368"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "433"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "497"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "566"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "119"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "185"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "250"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "314"
+    },
+    {
+      "_count": {
+        "_all": 1
+      },
+      "locationText": "380"
+    }
+  ],
+  "locs": [
+    {
+      "id": "cmwoo2boq000uw59c7nw4twil",
+      "code": "MAIN-1F",
+      "name": "อาคารหลัก ชั้น 1",
+      "building": "เธญเธฒเธเธฒเธฃเธซเธฅเธฑเธ",
+      "floor": "1",
+      "room": null,
+      "departmentId": "cmwoo2bob000qw59c65qx3wmr",
+      "isActive": true,
+      "createdAt": "2026-11-20T07:37:32.330Z",
+      "updatedAt": "2026-11-20T07:37:32.330Z"
+    }
+  ]
+}

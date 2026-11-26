@@ -1,0 +1,17 @@
+{
+  "serverUrl": "http://192.168.1.252:3000",
+  "apiKey": "paste-SYNC_AGENT_API_KEY-here",
+  "deviceId": "pc-phaduy-01",
+  "stateFile": "./.sync-state.json",
+  "batchSize": 200,
+  "sources": [
+    {
+      "path": "D:/AssetExcel/ทะเบียนคุมทรัพย์สิน-ครุภัณฑ์-ใหม่.xlsm",
+      "assetClass": "NORMAL"
+    },
+    {
+      "path": "D:/AssetExcel/ทะเบียนคุมทรัพย์สิน-ครุภัณฑ์-ใหม่ ต่ำกว่าเกณฑ์.xlsm",
+      "assetClass": "LOW_VALUE"
+    }
+  ]
+}

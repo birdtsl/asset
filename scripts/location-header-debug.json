@@ -1,0 +1,128 @@
+{
+  "interesting": [
+    {
+      "i": 3,
+      "k": "ที่",
+      "v": "1"
+    },
+    {
+      "i": 5,
+      "k": "เลือกลักษณะ / \r\nคุณสมบัติ (ชนิด)",
+      "v": "เครื่องซักผ้า"
+    },
+    {
+      "i": 6,
+      "k": "รหัสอาคาร/ครุภัณฑ์",
+      "v": "3510-001-0001/5 รพ.ทล./61"
+    },
+    {
+      "i": 11,
+      "k": "สถานที่ตั้ง/ผู้รับผิดชอบ",
+      "v": "โรงซักฟอก"
+    }
+  ],
+  "numeric": 1100,
+  "textual": 1,
+  "recovered": [
+    {
+      "rowNo": 4,
+      "stored": "1",
+      "fromRaw": "โรงซักฟอก"
+    },
+    {
+      "rowNo": 5,
+      "stored": "2",
+      "fromRaw": "โรงซักฟอก"
+    },
+    {
+      "rowNo": 6,
+      "stored": "3",
+      "fromRaw": "โรงซักฟอก"
+    },
+    {
+      "rowNo": 7,
+      "stored": "4",
+      "fromRaw": "โรงครัว"
+    },
+    {
+      "rowNo": 8,
+      "stored": "5",
+      "fromRaw": "โรงครัว"
+    },
+    {
+      "rowNo": 9,
+      "stored": "6",
+      "fromRaw": "โรงครัว"
+    },
+    {
+      "rowNo": 10,
+      "stored": "7",
+      "fromRaw": "จ่ายกลาง"
+    },
+    {
+      "rowNo": 11,
+      "stored": "8",
+      "fromRaw": "จ่ายกลาง"
+    },
+    {
+      "rowNo": 12,
+      "stored": "9",
+      "fromRaw": "เภสัชกรรม"
+    },
+    {
+      "rowNo": 13,
+      "stored": "10",
+      "fromRaw": "คลังยา"
+    },
+    {
+      "rowNo": 14,
+      "stored": "11",
+      "fromRaw": "เภสัชกรรม"
+    },
+    {
+      "rowNo": 15,
+      "stored": "12",
+      "fromRaw": "ห้องจ่ายยา"
+    },
+    {
+      "rowNo": 16,
+      "stored": "13",
+      "fromRaw": "ห้องส่งเสริม"
+    },
+    {
+      "rowNo": 17,
+      "stored": "14",
+      "fromRaw": "PCC"
+    },
+    {
+      "rowNo": 18,
+      "stored": "15",
+      "fromRaw": "โรงครัว"
+    },
+    {
+      "rowNo": 19,
+      "stored": "16",
+      "fromRaw": "คลังยา"
+    },
+    {
+      "rowNo": 20,
+      "stored": "17",
+      "fromRaw": "คลังยา"
+    },
+    {
+      "rowNo": 21,
+      "stored": "18",
+      "fromRaw": "โรงครัว"
+    },
+    {
+      "rowNo": 22,
+      "stored": "19",
+      "fromRaw": "โรงครัว"
+    },
+    {
+      "rowNo": 23,
+      "stored": "20",
+      "fromRaw": "ขยะติดเชื้อ"
+    }
+  ]
+}
