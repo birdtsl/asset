@@ -495,7 +495,7 @@ export function parseChekAssetWorkbook(buffer: Buffer): {
       seqNo: toInt(get(line, idx.seqNo)),
       categoryName: normalizeCategoryName(get(line, idx.categoryName) || null),
       itemName,
-      assetCode,
+      assetCode: assetCode || "",
       usefulLifeYears: null,
       budgetType: null,
       acquireMethod: get(line, idx.acquireMethod) || null,

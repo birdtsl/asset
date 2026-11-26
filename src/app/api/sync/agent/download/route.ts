@@ -34,13 +34,14 @@ export async function GET(req: NextRequest) {
     }
 
     const buf = buildInstallerZipWithDefaults(defaults);
-    return new NextResponse(buf, {
+    const body = new Uint8Array(buf);
+    return new NextResponse(body, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition":
           'attachment; filename="TSL-Asset-Sync-1.0.0-Setup.zip"',
-        "Content-Length": String(buf.length),
+        "Content-Length": String(body.byteLength),
       },
     });
   } catch (err) {
