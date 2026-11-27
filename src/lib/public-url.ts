@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
-const LAN_FALLBACK = "http://192.168.1.45:3004";
+/** fallback เมื่อไม่มี host จาก request และ env เป็น localhost */
+const FALLBACK_ORIGIN = "http://183.89.210.168:3004";
 
 function stripSlash(url: string) {
   return url.replace(/\/+$/, "");
@@ -11,15 +12,11 @@ function isLoopback(urlOrHost: string) {
 }
 
 /**
- * Origin ที่เบราว์เซอร์ในวง LAN เรียกใช้ได้จริง
- * หลีกเลี่ยง redirect ไป localhost:3004 ซึ่งเครื่องลูกข่ายมักไม่ได้รัน Smart Asset
+ * Origin ที่เบราว์เซอร์เรียกใช้ได้จริง
+ * ลำดับ: Host ของ request → APP_URL/AUTH_URL → fallback สาธารณะ
+ * ไม่บังคับ IP วง LAN เพื่อให้เปิดจากนอกวง (เช่น 183.89.x) แล้วยังดูรายละเอียดได้
  */
 export function getPublicOrigin(req?: NextRequest): string {
-  const fromEnv = stripSlash(
-    process.env.APP_URL?.trim() || process.env.AUTH_URL?.trim() || "",
-  );
-  if (fromEnv && !isLoopback(fromEnv)) return fromEnv;
-
   if (req) {
     const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
     const proto = (
@@ -28,10 +25,13 @@ export function getPublicOrigin(req?: NextRequest): string {
       "http"
     ).replace(/:$/, "");
     if (host && !isLoopback(host)) return `${proto}://${host}`;
-    if (fromEnv) return fromEnv;
-    if (!isLoopback(req.nextUrl.origin)) return req.nextUrl.origin;
+    if (!isLoopback(req.nextUrl.origin)) return stripSlash(req.nextUrl.origin);
   }
 
-  if (fromEnv) return fromEnv;
-  return LAN_FALLBACK;
+  const fromEnv = stripSlash(
+    process.env.APP_URL?.trim() || process.env.AUTH_URL?.trim() || "",
+  );
+  if (fromEnv && !isLoopback(fromEnv)) return fromEnv;
+
+  return FALLBACK_ORIGIN;
 }
