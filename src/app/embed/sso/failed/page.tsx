@@ -21,7 +21,7 @@ function FailedBody() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 p-6">
       <div className="max-w-lg rounded-2xl border border-rose-200 bg-white p-5 text-center shadow-sm">
         <p className="text-sm font-semibold text-rose-800">{message}</p>
-        <a href="/login" className="mt-3 inline-block text-xs font-medium text-teal-800 underline">
+        <a href="/" className="mt-3 inline-block text-xs font-medium text-teal-800 underline">
           ไปหน้า login ปกติ
         </a>
       </div>

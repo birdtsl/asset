@@ -7,14 +7,14 @@ export const authConfig = {
     maxAge: 8 * 60 * 60,
   },
   pages: {
-    signIn: "/login",
+    signIn: "/",
   },
   providers: [],
   callbacks: {
     authorized({ auth, request }) {
       const { pathname } = request.nextUrl;
       const isLoggedIn = !!auth?.user;
-      const isAuthPage = pathname.startsWith("/login");
+      const isAuthPage = pathname === "/" || pathname.startsWith("/login");
       const isPublic =
         isAuthPage ||
         // ฝังใน MIS: SSO + dashboard สาธารณะ + API สรุป — แอปหลักยัง login ตามเดิม
