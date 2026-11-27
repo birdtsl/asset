@@ -10,14 +10,17 @@ export const dynamic = "force-dynamic";
 export default async function EmbedDashboardPage({
   searchParams,
 }: {
-  searchParams: Promise<{ mis_sso?: string }>;
+  searchParams: Promise<{ mis_sso?: string; mis_return?: string }>;
 }) {
   const sp = await searchParams;
   const ssoToken = sp.mis_sso?.trim() || "";
+  const misReturnUrl = sp.mis_return?.trim() || "";
 
   return (
     <div className="min-h-screen bg-slate-50 p-6">
-      {ssoToken ? <EmbedLinkBridge ssoToken={ssoToken} /> : null}
+      {ssoToken ? (
+        <EmbedLinkBridge ssoToken={ssoToken} misReturnUrl={misReturnUrl || undefined} />
+      ) : null}
       <AssetExecutiveDashboard />
     </div>
   );

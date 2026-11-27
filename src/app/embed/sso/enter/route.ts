@@ -6,7 +6,12 @@ import {
   loadLocalUserByUsername,
 } from "@/lib/auth/hosxp-user";
 import { prisma } from "@/lib/prisma";
-import { MIS_FROM_COOKIE } from "@/lib/mis-origin";
+import {
+  getMisDirectorWarehouseUrl,
+  MIS_FROM_COOKIE,
+  MIS_RETURN_COOKIE,
+  sanitizeMisReturnUrl,
+} from "@/lib/mis-origin";
 import { getPublicOrigin } from "@/lib/public-url";
 
 export const dynamic = "force-dynamic";
@@ -120,8 +125,18 @@ export async function GET(req: NextRequest) {
       secure: cookie.startsWith("__Secure-"),
       maxAge,
     });
-    /** จำว่าเข้าจาก TSL MIS — ใช้โชว์ปุ่มกลับ dashboard หลัก */
+    /** จำว่าเข้าจาก TSL MIS — ใช้โชว์ปุ่มกลับตัวชี้วัดผู้อำนวยการ */
     res.cookies.set(MIS_FROM_COOKIE, "1", {
+      httpOnly: false,
+      sameSite: "lax",
+      path: "/",
+      secure: cookie.startsWith("__Secure-"),
+      maxAge,
+    });
+    const returnRaw = req.nextUrl.searchParams.get("return")?.trim() || "";
+    const returnUrl =
+      sanitizeMisReturnUrl(returnRaw) || getMisDirectorWarehouseUrl();
+    res.cookies.set(MIS_RETURN_COOKIE, returnUrl, {
       httpOnly: false,
       sameSite: "lax",
       path: "/",

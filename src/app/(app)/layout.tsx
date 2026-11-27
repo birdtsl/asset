@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
 import { AuthSessionProvider } from "@/components/providers/session-provider";
-import { MIS_FROM_COOKIE } from "@/lib/mis-origin";
+import { MIS_FROM_COOKIE, MIS_RETURN_COOKIE } from "@/lib/mis-origin";
 
 export default async function AppLayout({
   children,
@@ -18,6 +18,7 @@ export default async function AppLayout({
 
   const jar = await cookies();
   const fromMis = jar.get(MIS_FROM_COOKIE)?.value === "1";
+  const misReturnUrl = jar.get(MIS_RETURN_COOKIE)?.value ?? null;
 
   return (
     <AuthSessionProvider>
@@ -30,6 +31,7 @@ export default async function AppLayout({
             roles={session.user.roles}
             departmentName={session.user.departmentName}
             fromMis={fromMis}
+            misReturnUrl={misReturnUrl}
           />
           <main className="flex-1 overflow-y-auto p-6">{children}</main>
         </div>

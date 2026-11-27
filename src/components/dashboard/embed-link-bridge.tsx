@@ -31,11 +31,23 @@ function sameSmartAssetHost(url: URL, publicOrigin: string): boolean {
 
 /**
  * ในหน้า embed ของ MIS — คลิกลิงก์ภายในให้เปิดผ่าน SSO (top-level)
- * ใช้ host เดียวกับที่เปิด embed อยู่ เพื่อให้เห็นข้อมูลได้ทันที (ไม่ต้องเข้าวง LAN)
+ * ไม่ใช้ noopener เพื่อให้ปุ่มกลับไปโฟกัสแท็บ TSL MIS ได้
  */
-export function EmbedLinkBridge({ ssoToken }: { ssoToken: string }) {
+export function EmbedLinkBridge({
+  ssoToken,
+  misReturnUrl,
+}: {
+  ssoToken: string;
+  /** URL กลับไปตัวชี้วัดผู้อำนวยการ ใน erptsl */
+  misReturnUrl?: string;
+}) {
   useEffect(() => {
     if (!ssoToken) return;
+
+    const returnUrl =
+      misReturnUrl?.trim() ||
+      new URLSearchParams(window.location.search).get("mis_return")?.trim() ||
+      "";
 
     const onClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
@@ -63,12 +75,14 @@ export function EmbedLinkBridge({ ssoToken }: { ssoToken: string }) {
       const enter = new URL("/embed/sso/enter", publicOrigin);
       enter.searchParams.set("token", ssoToken);
       enter.searchParams.set("next", `${url.pathname}${url.search}${url.hash}`);
-      window.open(enter.toString(), "_blank", "noopener,noreferrer");
+      if (returnUrl) enter.searchParams.set("return", returnUrl);
+      // ไม่ใส่ noopener — ให้ window.opener ชี้กลับไปแท็บ/iframe ต้นทางของ MIS
+      window.open(enter.toString(), "_blank");
     };
 
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
-  }, [ssoToken]);
+  }, [ssoToken, misReturnUrl]);
 
   return null;
 }
