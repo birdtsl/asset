@@ -6,6 +6,7 @@ import {
   loadLocalUserByUsername,
 } from "@/lib/auth/hosxp-user";
 import { prisma } from "@/lib/prisma";
+import { MIS_FROM_COOKIE } from "@/lib/mis-origin";
 import { getPublicOrigin } from "@/lib/public-url";
 
 export const dynamic = "force-dynamic";
@@ -114,6 +115,14 @@ export async function GET(req: NextRequest) {
     const res = NextResponse.redirect(new URL(nextPath, origin));
     res.cookies.set(cookie, jwt, {
       httpOnly: true,
+      sameSite: "lax",
+      path: "/",
+      secure: cookie.startsWith("__Secure-"),
+      maxAge,
+    });
+    /** จำว่าเข้าจาก TSL MIS — ใช้โชว์ปุ่มกลับ dashboard หลัก */
+    res.cookies.set(MIS_FROM_COOKIE, "1", {
+      httpOnly: false,
       sameSite: "lax",
       path: "/",
       secure: cookie.startsWith("__Secure-"),
